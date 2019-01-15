@@ -2,10 +2,14 @@
   "name": "platinium-activities-reserver",
   "version": "0.0.5",
   "private": true,
+  "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js -t 12:45"
   },
   "dependencies": {
+    "axios": "^0.18.0",
+    "commander": "^2.19.0",
+    "moment": "^2.23.0",
     "puppeteer": "^1.11.0"
   }
 }
