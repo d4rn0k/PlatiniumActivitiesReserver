@@ -115,8 +115,8 @@ if (givenMomentTime.isBefore(moment())) {
   }
 
   let bookings = requiredCalendarItem.Classes
-    .filter(clazz => clazz.StartTime === givenMomentTime.format(platiniumDateFormat) &&
-      (clazz.Status === 'Bookable' || clazz.Status === 'Unavailable'));
+    .filter(singleClass => singleClass.StartTime === givenMomentTime.format(platiniumDateFormat) &&
+      (singleClass.Status === 'Bookable' || singleClass.Status === 'Unavailable'));
 
   if (bookings.length === 0) {
     console.error('No available bookings. All activities has been reserved.');

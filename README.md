@@ -2,7 +2,6 @@
 
 Tool for automatic activity booking
 
-
 ## Usage
 
 ```
@@ -21,9 +20,10 @@ Options:
   -h, --help                 output usage information
 ```
 
-Run with activity parameter **'squash'**, will reserve two activities, because platinium API returns two courts:
+Run with activity parameter equals **'squash'**, will reserve two activities, because platinium API returns two courts:
 ```
 POST 'Classes/ClassCalendar/WeeklyListClasses' body: { clubId: 16, search: 'squash'} => 
+
 'Kort 1 - Rezerwacja Squash'
 'Kort 2 - Rezerwacja Squash'
 ```
@@ -31,5 +31,14 @@ If you want to reserve one activity, pass e.g **'Kort 1 - Rezerwacja Squash'** a
 
 ## Run example 
 ```
-$ node app.js -u email@address.com -p Dupa8 -d 22-01-2019 -t 9:30 -a squash
+$ node app.js -u email@address.com -p myPassword -t 08:30 -d 11-02-2019 -t 08:30 -a "Kort 2 - Rezerwacja Squash"
+
+Current time: 2019-02-05 00:27:35
+Params: -u: "email@address.com", -p: "myPassword", -d: "2019-02-10T23:00:00.000Z" -t: "{"hour":"08","minute":"30"}" -a: "Kort 2 - Rezerwacja Squash"
+We want to reserve this activities:
+[Kort 2 - Rezerwacja Squash]: 2019-02-11 08:30:00
+I'm trying to reserve now!
+Booked successfully!
+
+Process finished with exit code 0
 ```
