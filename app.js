@@ -63,7 +63,6 @@ program
     process.exit(exitCodes.invalidParameter);
   });
 
-const givenMomentTime = program.date.clone().hour(program.time.hour).minute(program.time.minute);
 console.log(`Current time: ${(new moment()).format(customDateFormat)}`);
 console.log(`Params: -u: "${program.username}", -p: "${program.password}", -d: ${JSON.stringify(program.date)} -t: ` +
   `"${JSON.stringify(program.time)}" -a: "${program.activity}"`);
@@ -73,7 +72,7 @@ if (!program.username || !program.password || !program.activity || !program.date
   program.help();
   process.exit(exitCodes.noRequiredParameters);
 }
-
+const givenMomentTime = program.date.clone().hour(program.time.hour).minute(program.time.minute);
 if (givenMomentTime.isBefore(moment())) {
   console.error('Wrong activity desired time. Please type future date.');
   process.exit(exitCodes.pastDate);
