@@ -9,9 +9,12 @@ console.error = inputString => console.log(colors.red(inputString));
 console.success = inputString => console.log(colors.green(inputString));
 
 const sleepMs = waitTimeInMs => new Promise(resolve => {
-  console.log(`Sleeping for: ${moment().startOf('day').milliseconds(waitTimeInMs).format('DD[d] HH[h] mm[m] ss[s] SSS[ms]')}`);
+  console.log(`Sleeping for: ${durationToString(moment.duration(waitTimeInMs, 'ms'))}`);
   setTimeout(resolve, waitTimeInMs);
 });
+
+const durationToString = duration => `${duration.days()}[d] ${duration.hours()}[h] ${duration.minutes()}[m] ${duration.seconds()}[s]` +
+  ` ${duration.milliseconds()}[ms]`;
 const platiniumBaseUrl = 'https://platinium.perfectgym.pl/ClientPortal2/';
 const actions = {
   login: 'Auth/Login',
@@ -147,13 +150,10 @@ if (givenMomentTime.isBefore(moment())) {
           process.exit(exitCodes.reservedOk);
         }
         if (result.response.data.search('Booking to late') !== -1) {
-          console.error('Activity has been reserved! Too late!');
           throw 'Activity has been reserved! Too late!';
         } else if (result.response.data.search('Booking to soon') !== -1) {
-          console.error('Booking too soon!');
           throw 'Booking too soon!';
         } else if (result.response.data.search('User booking limit reached') !== -1) {
-          console.error('Already booked');
           throw 'Already booked';
         } else {
           console.error(`Unknown error [Name: ${booking.Name}, Id: ${booking.Id}, StartTime: ${booking.StartTime}], ` +
@@ -164,12 +164,10 @@ if (givenMomentTime.isBefore(moment())) {
     );
 
   const durationToTimeToReserve = moment.duration(givenMomentTime.diff(new moment())).subtract(7, 'days');
-  if (durationToTimeToReserve.asDays() < 7) {
-
+  if (durationToTimeToReserve.asDays() < 0) {
     console.log(`I'm trying to reserve now!`);
     await bookClasses(bookings).catch(reason => {
       console.error(reason);
-
       switch (reason) {
         case 'Already booked' :
           process.exit(exitCodes.alreadyBooked);
