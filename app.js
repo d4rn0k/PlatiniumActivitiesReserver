@@ -21,7 +21,8 @@ const actions = {
   postWeeklyListClasses: 'Classes/ClassCalendar/WeeklyListClasses',
   bookClass: 'Classes/ClassCalendar/BookClass'
 };
-const platiniumDateFormat = 'YYYY-MM-DDTHH:mm:ss';
+const platiniumDateFormat = 'YYYY-MM-DD';
+const platiniumClassDateFormat = 'YYYY-MM-DDTHH:mm:ss';
 const customDateFormat = 'YYYY-MM-DD HH:mm:ss';
 const clubs = {
   alejaPokoju16: 16
@@ -118,7 +119,7 @@ if (givenMomentTime.isBefore(moment())) {
   }
 
   let bookings = requiredCalendarItem.Classes
-    .filter(singleClass => singleClass.StartTime === givenMomentTime.format(platiniumDateFormat) &&
+    .filter(singleClass => singleClass.StartTime === givenMomentTime.format(platiniumClassDateFormat) &&
       (singleClass.Status === 'Bookable' || singleClass.Status === 'Unavailable'));
 
   if (bookings.length === 0) {
