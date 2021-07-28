@@ -15,6 +15,10 @@ function durationToString(duration) {
   return `${duration.days()}[d] ${duration.hours()}[h] ${duration.minutes()}[m] ${duration.seconds()}[s] ${duration.milliseconds()}[ms]`
 }
 
+function mergeDateWithTime(momentDate, momentTime) {
+  return momentDate.clone().hour(momentTime.hour()).minute(momentTime.minute());
+}
+
 function printRequestError(error) {
   console.error(`Can't make request. Error: ${error.message}`)
 }
@@ -32,5 +36,6 @@ function exitProgram(exitReason, successfully) {
 module.exports = {
   sleepMs,
   printRequestError,
-  exitProgram
+  exitProgram,
+  mergeDateWithTime
 }

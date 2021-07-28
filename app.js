@@ -2,7 +2,7 @@
 
 const axios = require('axios');
 const moment = require('moment');
-const {sleepMs, printRequestError, exitProgram} = require('./utils')
+const {sleepMs, printRequestError, exitProgram, mergeDateWithTime} = require('./utils')
 
 const {
   actions,
@@ -16,12 +16,10 @@ const {
   platiniumClassDateFormat,
   sleepBetweenRequestMs,
   timeBeforeStartFirstRequestMs,
-  maximumFutureDateTimeToReserve,
-  currentDateTime
+  maximumFutureDateTimeToReserve
 } = require('./constants');
 const {loginAndSetCookie} = require('./auth');
 const {userInput} = require("./commandLine.js");
-
 
 async function getCalendarFilters() {
   return axios
@@ -50,7 +48,8 @@ async function bookSingleClass(booking) {
       const responseCode = response.status;
       const responseData = response.data;
 
-      if ((responseCode === 499 && responseData.Errors[0].Code === 'ClassAlreadyBooked') || (responseCode === 500 && responseData.search('Class already booked') !== -1)) {
+      if ((responseCode === 499 && responseData.Errors[0].Code === 'ClassAlreadyBooked') ||
+        (responseCode === 500 && responseData.search('Class already booked') !== -1)) {
         exitProgram(exitReasons.reservedOk, true);
       }
       if (responseData.search('Booking to late') !== -1) {
@@ -80,11 +79,13 @@ async function getCalendarData(timeTableId) {
 function getAvailableBookings(calendarData, dateTime) {
   return calendarData
     .flatMap(calendarData => calendarData.Classes)
-    .filter(singleClass => singleClass.StartTime === dateTime.format(platiniumClassDateFormat) && (singleClass.Status === classStatuses.bookable));
+    .filter( ({StartTime, Status}) => StartTime === dateTime.format(platiniumClassDateFormat) && Status === classStatuses.bookable);
 }
 
 function getDurationToTimeToReserve(dateTime) {
-  return moment.duration(dateTime.diff(currentDateTime)).subtract(maximumFutureDateTimeToReserve.value, maximumFutureDateTimeToReserve.unit);
+  return moment
+    .duration(dateTime.diff(new moment()))
+    .subtract(maximumFutureDateTimeToReserve.value, maximumFutureDateTimeToReserve.unit);
 }
 
 function getTimeTableId(calendarFilters) {
@@ -99,7 +100,7 @@ function printAvailableBookings(availableBookings) {
 }
 
 async function main() {
-  const userDateTime = userInput.date.clone().hour(userInput.time.hour).minute(userInput.time.minute);
+  const userDateTime = mergeDateWithTime(userInput.date, userInput.time);
 
   if (userDateTime.isBefore(moment())) {
     exitProgram(exitReasons.pastDate, false);
@@ -128,16 +129,15 @@ async function main() {
   // If reservation is possible then try to reserve now, if not then wait until it's possible (a few minutes, hours etc.)
   if (durationToTimeToReserve.asDays() < 0) {
     console.log(`I'm trying to reserve now!`);
-    await bookAllClasses(availableBookings).catch(reason => {
-      console.error(reason);
-    });
+    await bookAllClasses(availableBookings);
   } else {
     console.log(`I must wait to reserve activity!`);
     await sleepMs(durationToTimeToReserve.asMilliseconds() - timeBeforeStartFirstRequestMs);
 
     for (let testCount = 0; testCount < maxRequestCount; testCount++) {
+      //Missing await below is intentionally, we do not to wait to finish request, we need to run them after sleep
       bookAllClasses(availableBookings);
-      sleepMs(sleepBetweenRequestMs);
+      await sleepMs(sleepBetweenRequestMs);
     }
   }
 }

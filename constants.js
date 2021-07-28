@@ -15,6 +15,7 @@ const clubIds = {
 const platiniumDateFormat = 'YYYY-MM-DD';
 const platiniumClassDateFormat = 'YYYY-MM-DDTHH:mm:ss';
 const dayWithTimeDateFormat = 'YYYY-MM-DD HH:mm:ss';
+const timeFormat = 'HH:mm'
 const timeFormatUserPattern = /^([0-9]|0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/;
 
 const exitReasons = {
@@ -38,7 +39,6 @@ const timeBeforeStartFirstRequestMs = 150;
 const classStatuses = {
   bookable: 'Bookable'
 };
-const currentDateTime = new moment();
 
 module.exports = {
   actions,
@@ -53,6 +53,6 @@ module.exports = {
   sleepBetweenRequestMs,
   timeBeforeStartFirstRequestMs,
   timeFormatUserPattern,
-  maximumFutureDateTimeToReserve,
-  currentDateTime
+  timeFormat,
+  maximumFutureDateTimeToReserve
 }
