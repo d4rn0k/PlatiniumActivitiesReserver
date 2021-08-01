@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const {platiniumBaseUrl, actions, exitReasons} = require("./constants.js");
+const {platiniumBaseUrl, restActions, exitReasons} = require("./constants.js");
 const {exitProgram} = require("./utils.js");
 
 //Needed headers
@@ -11,7 +11,7 @@ axios.defaults.withCredentials = true;
 async function loginAndSetCookie(username, password) {
   return axios({
     method: `post`,
-    url: `${platiniumBaseUrl}${actions.login}`,
+    url: `${platiniumBaseUrl}${restActions.login}`,
     withCredentials: true,
     headers: {
       cookie: 'ClientPortal.Embed;'

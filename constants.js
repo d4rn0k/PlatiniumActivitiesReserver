@@ -1,7 +1,7 @@
 const moment = require("moment");
 
 const platiniumBaseUrl = 'https://platinium.perfectgym.pl/ClientPortal2/';
-const actions = {
+const restActions = {
   login: 'Auth/Login',
   getDailyListClasses: 'Classes/ClassCalendar/DailyClasses',
   getCalendarFilters: 'Classes/ClassCalendar/GetCalendarFilters',
@@ -37,11 +37,13 @@ const maxRequestCount = 20;
 const sleepBetweenRequestMs = 15;
 const timeBeforeStartFirstRequestMs = 150;
 const classStatuses = {
-  bookable: 'Bookable'
+  bookable: 'Bookable', //Available to book
+  awaitable: 'Awaitable', //Booked by another user, we can sign for a waiting list
+  booked: 'Booked' //Already booked by current user
 };
 
 module.exports = {
-  actions,
+  restActions,
   classStatuses,
   clubIds,
   dayWithTimeDateFormat,

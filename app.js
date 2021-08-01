@@ -5,7 +5,7 @@ const moment = require('moment');
 const {sleepMs, printRequestError, exitProgram, mergeDateWithTime} = require('./utils')
 
 const {
-  actions,
+  restActions,
   classStatuses,
   clubIds,
   dayWithTimeDateFormat,
@@ -23,7 +23,7 @@ const {userInput} = require("./commandLine.js");
 
 async function getCalendarFilters() {
   return axios
-    .post(`${platiniumBaseUrl}${actions.getCalendarFilters}`, {clubId: clubIds.alejaPokoju16})
+    .post(`${platiniumBaseUrl}${restActions.getCalendarFilters}`, {clubId: clubIds.alejaPokoju16})
     .then(response => response.data.TimeTableFilters)
     .catch(printRequestError)
 }
@@ -32,43 +32,44 @@ function bookAllClasses(bookings) {
   return Promise.all(bookings.map(booking => bookSingleClass(booking)))
 }
 
-async function bookSingleClass(booking) {
-  return axios({
-    method: 'post',
-    url: `${platiniumBaseUrl}${actions.bookClass}`,
-    withCredentials: true,
-    data: {classId: booking.Id}
-  }).then(result => {
-      if (result.status === 200) {
-        exitProgram(exitReasons.reservedOk, true);
-      }
-    }
-  ).catch(result => {
-      const response = result.response;
-      const responseCode = response.status;
-      const responseData = response.data;
+function isClassAlreadyReserved(responseCode, responseData) {
+  return responseCode === 499 || (responseCode === 500 && responseData.search('Class already booked') !== -1);
+}
 
-      if ((responseCode === 499 && responseData.Errors[0].Code === 'ClassAlreadyBooked') ||
-        (responseCode === 500 && responseData.search('Class already booked') !== -1)) {
-        exitProgram(exitReasons.reservedOk, true);
+async function bookSingleClass(booking) {
+  return axios
+    .post(`${platiniumBaseUrl}${restActions.bookClass}`, {classId: booking.Id})
+    .then(result => {
+        if (result.status === 200) {
+          exitProgram(exitReasons.reservedOk, true);
+        }
       }
-      if (responseData.search('Booking to late') !== -1) {
-        exitProgram(exitReasons.alreadyBooked, false);
-      } else if (responseData.search('Booking to soon') !== -1) {
-        exitProgram(exitReasons.noRequiredParameters, false); //TODO: adjust exit message
-      } else if (responseData.search('User booking limit reached') !== -1) {
-        exitProgram(exitReasons.alreadyBooked, false);//TODO: adjust exit message
-      } else {
-        console.error(`Unknown error [Name: ${booking.Name}, Id: ${booking.Id}, StartTime: ${booking.StartTime}], ` +
-          `ErrorCode: ${JSON.stringify(responseCode)}`);
-        exitProgram(exitReasons.unknownError, false);
+    ).catch(result => {
+        console.error("Error when try to book single class: ", result)
+        const response = result.response;
+        const responseCode = response.status;
+        const responseData = response.data;
+
+        if (isClassAlreadyReserved(responseCode, responseData)) {
+          exitProgram(exitReasons.reservedOk, true);
+        }
+        if (responseData.search('Booking to late') !== -1) {
+          exitProgram(exitReasons.alreadyBooked, false);
+        } else if (responseData.search('Booking to soon') !== -1) {
+          exitProgram(exitReasons.noRequiredParameters, false); //TODO: adjust exit message
+        } else if (responseData.search('User booking limit reached') !== -1) {
+          exitProgram(exitReasons.alreadyBooked, false);//TODO: adjust exit message
+        } else {
+          console.error(`Unknown error [Name: ${booking.Name}, Id: ${booking.Id}, StartTime: ${booking.StartTime}], ` +
+            `ErrorCode: ${JSON.stringify(responseCode)}`);
+          exitProgram(exitReasons.unknownError, false);
+        }
       }
-    }
-  )
+    )
 }
 
 async function getCalendarData(timeTableId) {
-  return axios.post(`${platiniumBaseUrl}${actions.getDailyListClasses}`, {
+  return axios.post(`${platiniumBaseUrl}${restActions.getDailyListClasses}`, {
     clubId: clubIds.alejaPokoju16,
     date: userInput.date.format(platiniumDateFormat),
     timeTableId
@@ -79,7 +80,8 @@ async function getCalendarData(timeTableId) {
 function getAvailableBookings(calendarData, dateTime) {
   return calendarData
     .flatMap(calendarData => calendarData.Classes)
-    .filter( ({StartTime, Status}) => StartTime === dateTime.format(platiniumClassDateFormat) && Status === classStatuses.bookable);
+    .filter(({StartTime}) => StartTime === dateTime.format(platiniumClassDateFormat))
+    .filter(({Status}) => Status === classStatuses.bookable);
 }
 
 function getDurationToTimeToReserve(dateTime) {
@@ -120,7 +122,7 @@ async function main() {
   const availableBookings = await getAvailableBookings(calendarData, userDateTime)
 
   if (availableBookings.length === 0) {
-    exitProgram(exitReasons.alreadyBooked, false)
+    exitProgram(exitReasons.alreadyBooked, false); //TODO change msg
   }
   printAvailableBookings(availableBookings);
 
